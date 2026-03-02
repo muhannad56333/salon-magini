@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>صالون المغيني</title>
+<style>
+body{
+    background:#111;
+    color:white;
+    font-family:Arial;
+    text-align:center;
+}
+h1{ color:gold; }
+.container{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+}
+.card{
+    background:#222;
+    margin:15px;
+    padding:20px;
+    width:250px;
+    border-radius:15px;
+    box-shadow:0 0 10px gold;
+}
+button{
+    background:gold;
+    border:none;
+    padding:8px;
+    margin-top:10px;
+    cursor:pointer;
+    font-weight:bold;
+}
+input, select{
+    width:90%;
+    padding:6px;
+    margin-top:6px;
+}
+#admin{
+    margin-top:40px;
+    background:#222;
+    padding:20px;
+}
+.clear-btn{
+    background:red;
+    color:white;
+    margin-top:15px;
+}
+</style>
+</head>
+<body>
+
+<h1>💈 صالون المغيني 💈</h1>
+<h3>الإدارة: أحمد المغيني 👑</h3>
+
+<div class="container" id="barbers"></div>
+
+<div id="admin">
+    <h2>📋 الحجوزات</h2>
+    <div id="bookings"></div>
+    <button class="clear-btn" onclick="clearBookings()">مسح كل الحجوزات</button>
+</div>
+
+<script>
+// الحلاقين
+let barberNames = ["كريم","سيد","صبحي","يوسف","فاروق"];
+
+// الخدمات مع الهيدروفشيال والليزر مميز
+let services = [
+    "حلاقة شعر",
+    "حلاقة دقن",
+    "شعر + دقن",
+    "ليزر للحلاقة ⭐ جديد",
+    "صبغة شعر",
+    "كيراتين",
+    "بروتين",
+    "تنظيف بشرة",
+    "هيدروفشيال"
+];
+
+let barbersDiv = document.getElementById("barbers");
+let bookingsDiv = document.getElementById("bookings");
+
+// تحميل الحجوزات المحفوظة
+let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+displayBookings();
+
+// إنشاء كروت الحلاقين
+barberNames.forEach(name=>{
+    let card = document.createElement("div");
+    card.className="card";
+
+    let options = services.map(s => {
+        if(s.includes("ليزر")){
+            return `<option value="${s}">🔥 ${s}</option>`;
+        }
+        return `<option value="${s}">${s}</option>`;
+    }).join("");
+
+    card.innerHTML = `
+        <h3>✂ ${name}</h3>
+        <input type="text" placeholder="اسمك" id="name-${name}">
+        <input type="tel" placeholder="رقم الموبايل" id="phone-${name}">
+        <select id="service-${name}">
+            <option value="">اختر الخدمة</option>
+            ${options}
+        </select>
+        <input type="time" id="time-${name}">
+        <br>
+        <button onclick="book('${name}')">احجز</button>
+    `;
+
+    barbersDiv.appendChild(card);
+});
+
+// دالة الحجز
+function book(barber){
+    let nameInput = document.getElementById("name-"+barber);
+    let phoneInput = document.getElementById("phone-"+barber);
+    let serviceInput = document.getElementById("service-"+barber);
+    let timeInput = document.getElementById("time-"+barber);
+
+    let customer = nameInput.value.trim();
+    let phone = phoneInput.value.trim();
+    let service = serviceInput.value;
+    let time = timeInput.value;
+
+    let phoneRegex = /^01[0-9]{9}$/;
+
+    if(customer=="" || phone=="" || service=="" || time==""){
+        alert("املا كل البيانات");
+        return;
+    }
+
+    if(!phoneRegex.test(phone)){
+        alert("اكتب رقم مصري صحيح 11 رقم يبدأ بـ 01");
+        return;
+    }
+
+    let booking = {
+        name: customer,
+        phone: phone,
+        barber: barber,
+        service: service,
+        time: time
+    };
+
+    bookings.push(booking);
+    localStorage.setItem("bookings", JSON.stringify(bookings));
+
+    displayBookings();
+
+    nameInput.value="";
+    phoneInput.value="";
+    serviceInput.value="";
+    timeInput.value="";
+}
+
+// عرض الحجوزات
+function displayBookings(){
+    bookingsDiv.innerHTML="";
+    bookings.forEach(b=>{
+        bookingsDiv.innerHTML += 
+        `<p>👤 ${b.name} | 📞 ${b.phone} | 💼 ${b.service} | ⏰ ${b.time} عند ✂ ${b.barber}</p>`;
+    });
+}
+
+// مسح كل الحجوزات
+function clearBookings(){
+    if(confirm("متأكد تمسح كل الحجوزات؟")){
+        bookings = [];
+        localStorage.removeItem("bookings");
+        displayBookings();
+    }
+}
+</script>
+
+</body>
+</html>
